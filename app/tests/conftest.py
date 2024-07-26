@@ -1,6 +1,7 @@
 import os
 import pytest
 from app import app, db
+from ..app import db
 
 @pytest.fixture(scope='module')
 def test_client():
