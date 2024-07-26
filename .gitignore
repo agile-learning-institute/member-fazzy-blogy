@@ -1,0 +1,46 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Flask
+instance/
+.env
+
+# IDEs
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Database
+*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# Coverage reports
+.coverage
+*.coverage
+*.cover
+
+# Pytest
+.cache/
+
+# Migrations
+migrations/
+
+# Supabase
+supabase/
+
+# Backup files
+*.bak
+*.tmp
+*.swp
