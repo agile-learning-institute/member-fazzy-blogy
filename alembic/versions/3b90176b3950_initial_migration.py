@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: cd091c61aed7
+Revision ID: 3b90176b3950
 Revises: 
-Create Date: 2024-08-02 04:15:20.036208
+Create Date: 2024-08-02 12:40:55.771188
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'cd091c61aed7'
+revision: str = '3b90176b3950'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,7 +24,9 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('username', sa.String(length=50), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
-    sa.Column('password_hash', sa.String(length=128), nullable=False),
+    sa.Column('password', sa.String(length=256), nullable=False),
+    sa.Column('firstname', sa.String(length=128), nullable=False),
+    sa.Column('lastname', sa.String(length=128), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
@@ -35,13 +37,12 @@ def upgrade() -> None:
     )
     op.create_table('blog_posts',
     sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('title', sa.String(length=255), nullable=False),
-    sa.Column('summary', sa.String(length=255), nullable=False),
-    sa.Column('post', sa.Text(), nullable=False),
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('content', sa.Text(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('user_id', sa.UUID(), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.Column('author_id', sa.UUID(), nullable=False),
+    sa.ForeignKeyConstraint(['author_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('comments',

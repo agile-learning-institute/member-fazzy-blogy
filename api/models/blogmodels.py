@@ -12,6 +12,8 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)
+    firstname = db.Column(db.String(128), nullable=False)
+    lastname = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
     is_active = db.Column(db.Boolean, default=True)
