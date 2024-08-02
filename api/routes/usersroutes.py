@@ -27,13 +27,13 @@ def create_user():
         return jsonify({'message': 'Email already exists'}), 400
 
     # Hash the password
-    hashed_password = generate_password_hash(data['password'], method='sha256')
+    hashed_password = generate_password_hash(data['password'])
 
     # Create a new user
     new_user = User(
         username=data['username'],
         email=data['email'],
-        password_hash=hashed_password
+        password=hashed_password
     )
     db.session.add(new_user)
     db.session.commit()
