@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify
 
-bp = Blueprint('blog', __name__, url_prefix='/api/v1')
+blog_bp = Blueprint('blog', __name__, url_prefix='/api/v1')
 
-@bp.route('/', methods=['GET'])
+@blog_bp.route('/', methods=['GET'])
 def index():
     return '''
     <!DOCTYPE html>
@@ -19,6 +19,6 @@ def index():
     </html>
     '''
 
-@bp.route('/hello', methods=['GET'])
+@blog_bp.route('/hello', methods=['GET'])
 def api():
     return jsonify({"message": "Hello from API v1!"})

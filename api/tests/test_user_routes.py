@@ -1,7 +1,7 @@
 import json
 import pytest
 from ..app import db
-from app.models import User
+from api.models import User
 
 @pytest.fixture
 def access_token(test_client):
