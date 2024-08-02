@@ -19,7 +19,8 @@ class User(db.Model):
 
     # Relationships
     posts = db.relationship('BlogPost', backref='author', lazy=True)
-    comments = db.relationship('Comment', backref='author', lazy=True)
+    comments = db.relationship('Comment', backref='user', lazy=True)
+
 
 class BlogPost(db.Model):
     __tablename__ = 'blog_posts'
@@ -46,4 +47,4 @@ class Comment(db.Model):
 
     # Relationships
     blog_post = db.relationship('BlogPost', backref=db.backref('comments', lazy=True))
-    author = db.relationship('User', backref=db.backref('comments', lazy=True))
+    user = db.relationship('User', backref=db.backref('comments', lazy=True))
