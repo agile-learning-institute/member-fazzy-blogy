@@ -2,6 +2,8 @@ import uuid
 from flask import Flask, request, jsonify, Blueprint
 from api.models.blogmodels import User
 from werkzeug.security import generate_password_hash
+from flask_jwt_extended import jwt_required, create_access_token
+from api.schemas.userschema import UserSchema, user_schema, users_schema
 
 user_bp = Blueprint('users', __name__, url_prefix='/api/v1')
 
@@ -60,19 +62,31 @@ def create_user():
     }), 201
 
 
-# @user_bp.route('/users', methods=['GET'])
-# def get_users():
-#     users = User.query.all()
-#     users_list = [
-#         {
-#             'id': user.id,
-#             'username': user.username,
-#             'email': user.email,
-#             'is_active': user.is_active,
-#             'role': user.role
-#         } for user in users
-#     ]
-#     return jsonify(users_list), 200
+# Route to get users with pagination and authentication
+@user_bp.route('/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    try:
+        # Pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+
+        # Fetch users with pagination
+        users = User.query.paginate(page=page, per_page=per_page, error_out=False)
+        result = users_schema.dump(users.items)
+
+        # Add pagination metadata
+        response = {
+            'users': result,
+            'total': users.total,
+            'pages': users.pages,
+            'current_page': users.page,
+            'next_page': users.next_num,
+            'prev_page': users.prev_num
+        }
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # @user_bp.route('/users/<int:user_id>', methods=['PUT'])
 # def update_user(user_id):
@@ -102,3 +116,21 @@ def create_user():
 #     else:
 #         return jsonify({'message': 'User not found'}), 404
 # app = Flask(__name__)
+
+# Route for creating an access token for testing purposes
+@user_bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({'message': 'Missing required fields'}), 400
+
+    user = User.query.filter_by(username=username).first()
+
+    if user and user.check_password(password):
+        access_token = create_access_token(identity=username)
+        return jsonify(access_token=access_token, message='Login successful'), 200
+    else:
+        return jsonify({'message': 'Invalid username or password'}), 401
