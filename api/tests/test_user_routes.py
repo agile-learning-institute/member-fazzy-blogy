@@ -114,3 +114,32 @@ def test_get_users_large_page_number(client, setup_database, auth_header):
     data = response.get_json()
     assert 'users' in data
     assert len(data['users']) == 0, f"Expected 0 users, got {len(data['users'])}"
+
+# test longin routes
+def test_login_success(test_client):
+    response = test_client.post('/api/v1/login', json={
+        'identifier': 'john_doe',
+        'password': 'securepassword123'
+    })
+
+    data = response.get_json()
+    assert response.status_code == 200
+    assert 'access_token' in data
+    assert data['message'] == 'Login successful'
+
+def test_login_failure(test_client):
+    response = test_client.post('/api/v1/login', json={
+        'identifier': 'john_doe',
+        'password': 'wrongpassword'
+    })
+
+    data = response.get_json()
+    assert response.status_code == 401
+    assert data['message'] == 'Invalid username or password'
+
+def test_login_missing_fields(test_client):
+    response = test_client.post('/api/v1/login', json={})
+
+    data = response.get_json()
+    assert response.status_code == 400
+    assert data['message'] == 'Missing required fields'

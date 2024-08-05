@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import UUID
+from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 
 db = SQLAlchemy()
@@ -18,6 +19,13 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
     is_active = db.Column(db.Boolean, default=True)
     role = db.Column(db.String(50), default='author')
+
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
 
     # Relationships
     posts = db.relationship('BlogPost', back_populates='author', lazy=True)

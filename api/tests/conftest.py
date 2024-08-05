@@ -28,3 +28,24 @@ def setup_database():
         yield
         db.session.remove()
         db.drop_all()
+
+
+@pytest.fixture(scope='module')
+def test_client():
+    with app.test_client() as testing_client:
+        with app.app_context():
+            db.create_all()
+
+            user = User(
+                username="john_doe",
+                email="john.doe@example.com",
+                firstname="John",
+                lastname="Doe",
+                role="author"
+            )
+            user.set_password("securepassword123")
+            db.session.add(user)
+            db.session.commit()
+
+            yield testing_client
+            db.drop_all()

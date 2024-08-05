@@ -121,20 +121,21 @@ def get_users():
 #         return jsonify({'message': 'User not found'}), 404
 # app = Flask(__name__)
 
+
 # Route for creating an access token for testing purposes
 @user_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    username = data.get('username')
+    identifier = data.get('identifier')
     password = data.get('password')
 
-    if not username or not password:
+    if not identifier or not password:
         return jsonify({'message': 'Missing required fields'}), 400
 
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
 
     if user and user.check_password(password):
-        access_token = create_access_token(identity=username)
+        access_token = create_access_token(identity=user.username)
         return jsonify(access_token=access_token, message='Login successful'), 200
     else:
-        return jsonify({'message': 'Invalid username or password'}), 401
+        return jsonify({'message': 'Invalid username/email or password'}), 401
