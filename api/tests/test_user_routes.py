@@ -1,6 +1,15 @@
+# test_user_routes.py
 import json
+import pytest
 from api.models.blogmodels import User
+from flask_jwt_extended import create_access_token
 
+@pytest.fixture
+def auth_header(client):
+    access_token = create_access_token(identity='testuser')
+    return {'Authorization': f'Bearer {access_token}'}
+
+# User creation tests
 def test_create_user_success(client):
     user_data = {
         'username': 'testuser',
@@ -66,3 +75,42 @@ def test_create_user_duplicate_user(client):
     data = response.get_json()
     assert 'error' in data
     assert data['error'] == 'User with that username or email already exists'
+
+# Get users route tests
+def test_get_users_success(client, setup_database, auth_header):
+    response = client.get('/api/v1/users', headers=auth_header, query_string={'page': 1, 'per_page': 10})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'users' in data
+    assert 'total' in data
+    assert 'pages' in data
+    assert 'current_page' in data
+    assert 'next_page' in data
+    assert 'prev_page' in data
+    assert len(data['users']) == 10, f"Expected 10 users, got {len(data['users'])}"
+
+# def test_get_users_invalid_page(client, setup_database, auth_header):
+#     response = client.get('/api/v1/users', headers=auth_header, query_string={'page': 'invalid', 'per_page': 10})
+#     assert response.status_code == 400
+
+def test_get_users_unauthorized(client):
+    response = client.get('/api/v1/users')
+    assert response.status_code == 401
+    data = response.get_json()
+    assert 'msg' in data
+    assert data['msg'] == 'Missing Authorization Header'
+
+# def test_get_users_pagination(client, setup_database, auth_header):
+#     response = client.get('/api/v1/users', headers=auth_header, query_string={'page': 2, 'per_page': 10})
+#     assert response.status_code == 200
+#     data = response.get_json()
+#     assert 'users' in data
+#     assert len(data['users']) == 10, f"Expected 10 users, got {len(data['users'])}"
+
+
+def test_get_users_large_page_number(client, setup_database, auth_header):
+    response = client.get('/api/v1/users', headers=auth_header, query_string={'page': 999, 'per_page': 10})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'users' in data
+    assert len(data['users']) == 0, f"Expected 0 users, got {len(data['users'])}"

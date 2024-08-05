@@ -13,3 +13,5 @@ class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    JWT_SECRET_KEY = os.getenv('SECRET_KEY')

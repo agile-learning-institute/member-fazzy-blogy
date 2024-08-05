@@ -71,6 +71,9 @@ def get_users():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
 
+        if page < 1 or per_page < 1:
+            return jsonify({'error': 'Invalid pagination parameters'}), 400
+
         # Fetch users with pagination
         users = User.query.paginate(page=page, per_page=per_page, error_out=False)
         result = users_schema.dump(users.items)
@@ -81,12 +84,13 @@ def get_users():
             'total': users.total,
             'pages': users.pages,
             'current_page': users.page,
-            'next_page': users.next_num,
-            'prev_page': users.prev_num
+            'next_page': users.next_num if users.has_next else None,
+            'prev_page': users.prev_num if users.has_prev else None
         }
         return jsonify(response), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 # @user_bp.route('/users/<int:user_id>', methods=['PUT'])
 # def update_user(user_id):
