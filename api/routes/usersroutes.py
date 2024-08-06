@@ -92,21 +92,22 @@ def get_users():
         return jsonify({'error': str(e)}), 500
 
 
-# @user_bp.route('/users/<int:user_id>', methods=['PUT'])
-# def update_user(user_id):
-#     from api.models.blogmodels import db
-#     data = request.json
-#     user = User.query.get(user_id)
+@user_bp.route('/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    from api.models.blogmodels import db
+    data = request.json
+    user = User.query.get(user_id)
 
-#     if user:
-#         user.username = data.get('username', user.username)
-#         user.email = data.get('email', user.email)
-#         user.is_active = data.get('is_active', user.is_active)
-#         user.role = data.get('role', user.role)
-#         db.session.commit()
-#         return jsonify({'message': 'User updated successfully'}), 200
-#     else:
-#         return jsonify({'message': 'User not found'}), 404
+    if user:
+        user.username = data.get('username', user.username)
+        user.email = data.get('email', user.email)
+        user.is_active = data.get('is_active', user.is_active)
+        user.role = data.get('role', user.role)
+        db.session.commit()
+        return jsonify({'message': 'User updated successfully'}), 200
+    else:
+        return jsonify({'message': 'User not found'}), 404
+
 
 # @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
 # def delete_user(user_id):

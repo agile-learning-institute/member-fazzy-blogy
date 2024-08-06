@@ -143,3 +143,37 @@ def test_login_missing_fields(test_client):
     data = response.get_json()
     assert response.status_code == 400
     assert data['message'] == 'Missing required fields'
+
+#update route
+def test_update_user(test_client):
+    response = test_client.post('/api/v1/register', json={
+        "username": "jane_doe",
+        "email": "jane.doe@example.com",
+        "password": "securepassword123",
+        "firstname": "Jane",
+        "lastname": "Doe",
+        "role": "editor"
+    })
+    assert response.status_code == 201
+    user_id = response.get_json()['id']
+
+    # Update the user's details
+    response = test_client.put(f'/api/v1/update/{user_id}', json={
+        "username": "jane_updated",
+        "email": "jane.updated@example.com",
+        "firstname": "JaneUpdated",
+        "lastname": "DoeUpdated",
+        "role": "admin"
+    })
+    assert response.status_code == 200
+    assert response.get_json()['message'] == 'User updated successfully'
+
+    # Fetch the updated user to verify changes
+    response = test_client.get(f'/api/v1/user/{user_id}')
+    assert response.status_code == 200
+    user_data = response.get_json()
+    assert user_data['username'] == "jane_updated"
+    assert user_data['email'] == "jane.updated@example.com"
+    assert user_data['firstname'] == "JaneUpdated"
+    assert user_data['lastname'] == "DoeUpdated"
+    assert user_data['role'] == "admin"
