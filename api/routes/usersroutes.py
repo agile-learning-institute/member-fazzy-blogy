@@ -1,4 +1,5 @@
 import uuid
+from uuid import UUID
 from flask import Flask, request, jsonify, Blueprint
 from api.models.blogmodels import User
 from werkzeug.security import generate_password_hash
@@ -91,23 +92,38 @@ def get_users():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
-@user_bp.route('/users/<int:user_id>', methods=['PUT'])
+# update user
+@user_bp.route('/users/<string:user_id>', methods=['PUT'])
+@jwt_required()
 def update_user(user_id):
     from api.models.blogmodels import db
-    data = request.json
+    try:
+        user_id = UUID(user_id, version=4)
+    except ValueError:
+        return jsonify({"msg": "Invalid user ID format"}), 400
+
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
 
-    if user:
-        user.username = data.get('username', user.username)
-        user.email = data.get('email', user.email)
-        user.is_active = data.get('is_active', user.is_active)
-        user.role = data.get('role', user.role)
-        db.session.commit()
-        return jsonify({'message': 'User updated successfully'}), 200
-    else:
-        return jsonify({'message': 'User not found'}), 404
+    data = request.get_json()
+    if not data:
+        return jsonify({"msg": "No input data provided"}), 400
 
+    user.username = data.get('username', user.username)
+    user.email = data.get('email', user.email)
+    user.is_active = data.get('is_active', user.is_active)
+    user.role = data.get('role', user.role)
+
+    db.session.commit()
+
+    return jsonify({
+        'id': str(user.id),
+        'username': user.username,
+        'email': user.email,
+        'is_active': user.is_active,
+        'role': user.role
+    }), 200
 
 # @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
 # def delete_user(user_id):
@@ -126,7 +142,10 @@ def update_user(user_id):
 # Route for creating an access token for testing purposes
 @user_bp.route('/login', methods=['POST'])
 def login():
+    from api.app import app
     data = request.get_json()
+    app.logger.info(f"Received login data: {data}")
+
     identifier = data.get('identifier')
     password = data.get('password')
 

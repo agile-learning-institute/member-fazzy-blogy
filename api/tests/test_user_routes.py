@@ -1,7 +1,8 @@
 # test_user_routes.py
 import json
 import pytest
-from api.models.blogmodels import User
+from uuid import uuid4
+from api.models.blogmodels import User, db
 from flask_jwt_extended import create_access_token
 
 @pytest.fixture
@@ -144,36 +145,46 @@ def test_login_missing_fields(test_client):
     assert response.status_code == 400
     assert data['message'] == 'Missing required fields'
 
-#update route
-def test_update_user(test_client):
-    response = test_client.post('/api/v1/register', json={
-        "username": "jane_doe",
-        "email": "jane.doe@example.com",
-        "password": "securepassword123",
-        "firstname": "Jane",
-        "lastname": "Doe",
-        "role": "editor"
+def get_access_token(client, username, password):
+    response = client.post('/api/v1/login', json={
+        'username': username,
+        'password': password
     })
-    assert response.status_code == 201
-    user_id = response.get_json()['id']
+    return response.get_json()['access_token']
 
-    # Update the user's details
-    response = test_client.put(f'/api/v1/update/{user_id}', json={
-        "username": "jane_updated",
-        "email": "jane.updated@example.com",
-        "firstname": "JaneUpdated",
-        "lastname": "DoeUpdated",
-        "role": "admin"
-    })
-    assert response.status_code == 200
-    assert response.get_json()['message'] == 'User updated successfully'
 
-    # Fetch the updated user to verify changes
-    response = test_client.get(f'/api/v1/user/{user_id}')
+# Test Update user
+def test_update_user(client, token):
+    user_id = str(uuid4())
+
+    user = User(
+        id=user_id,
+        username="testuser",
+        email="testuser@example.com",
+        firstname="Test",
+        lastname="User",
+        role="user",
+        is_active=True
+    )
+    user.set_password("password")
+    db.session.add(user)
+    db.session.commit()
+
+    # Update the user
+    response = client.put(
+        f'/api/v1/update/{user_id}',
+        headers={"Authorization": f"Bearer {token}"},
+        data=json.dumps({
+            "username": "updateduser",
+            "email": "updateduser@example.com",
+            "is_active": False,
+            "role": "user"
+        }),
+        content_type='application/json'
+    )
     assert response.status_code == 200
-    user_data = response.get_json()
-    assert user_data['username'] == "jane_updated"
-    assert user_data['email'] == "jane.updated@example.com"
-    assert user_data['firstname'] == "JaneUpdated"
-    assert user_data['lastname'] == "DoeUpdated"
-    assert user_data['role'] == "admin"
+    response_json = response.get_json()
+    assert response_json['username'] == "updateduser"
+    assert response_json['email'] == "updateduser@example.com"
+    assert response_json['is_active'] is False
+    assert response_json['role'] == "user"
