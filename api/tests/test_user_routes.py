@@ -221,3 +221,36 @@ def test_database_error(test_client, init_database, mocker):
     error_data = response.get_json()
     assert 'error' in error_data
     assert error_data['error'] == 'Database error occurred'
+
+
+def test_delete_user(client, user):
+    # Create a JWT token for authorization
+    access_token = create_access_token(identity=user.id)
+
+    # Send DELETE request
+    response = client.delete(
+        f'/users/{user.id}',
+        headers={'Authorization': f'Bearer {access_token}'}
+    )
+
+    # Check the response
+    assert response.status_code == 200
+    assert response.json == {'message': 'User deleted successfully'}
+
+    # Verify the user is actually deleted
+    deleted_user = User.query.get(user.id)
+    assert deleted_user is None
+
+def test_delete_user_not_found(client):
+    # Create a JWT token for authorization
+    access_token = create_access_token(identity='nonexistent-user-id')
+
+    # Send DELETE request
+    response = client.delete(
+        '/users/invalid-user-id',
+        headers={'Authorization': f'Bearer {access_token}'}
+    )
+
+    # Check the response
+    assert response.status_code == 404
+    assert response.json == {'message': 'User not found'}

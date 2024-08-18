@@ -155,18 +155,29 @@ def update_user(user_id):
         'role': user.role
     }), 200
 
-# @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
-# def delete_user(user_id):
-#     from api.models.blogmodels import db
-#     user = User.query.get(user_id)
+# Delete a user 
+@user_bp.route('/users/<string:user_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    from api.models.blogmodels import db
+    from api.app import app
+    try:
+        user = User.query.get(user_id)
 
-#     if user:
-#         db.session.delete(user)
-#         db.session.commit()
-#         return jsonify({'message': 'User deleted successfully'}), 200
-#     else:
-#         return jsonify({'message': 'User not found'}), 404
-# app = Flask(__name__)
+        if user:
+            db.session.delete(user)
+            db.session.commit()
+            return jsonify({'message': 'User deleted successfully'}), 200
+        else:
+            return jsonify({'message': 'User not found'}), 404
+
+    except SQLAlchemyError as e:
+        app.logger.error(f"Database error: {e}")
+        return jsonify({'error': 'Database error occurred'}), 500
+
+    except Exception as e:
+        app.logger.error(f"Internal server error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 # Route for creating an access token for testing purposes
