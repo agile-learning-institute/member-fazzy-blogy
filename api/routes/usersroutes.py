@@ -155,7 +155,7 @@ def update_user(user_id):
         'role': user.role
     }), 200
 
-# Delete a user 
+# Delete a user
 @user_bp.route('/users/<string:user_id>', methods=['DELETE'])
 @jwt_required()
 def delete_user(user_id):
