@@ -98,6 +98,7 @@ def get_users():
 
 # get a user
 @user_bp.route('/users/<string:user_id>', methods=['GET'])
+@jwt_required()
 def get_user(user_id):
     try:
         user = User.query.get_or_404(user_id)
