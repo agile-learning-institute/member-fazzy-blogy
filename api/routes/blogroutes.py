@@ -1,6 +1,9 @@
 from flask import Blueprint, request, jsonify, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from api.models.blogmodels import db, BlogPost, User, Comment
+from api.schemas.blogschema import BlogPostSchema
+from sqlalchemy.exc import SQLAlchemyError
+
 
 blog_bp = Blueprint('blog', __name__, url_prefix='/api/v1')
 
@@ -34,43 +37,45 @@ def create_blog_post():
         return jsonify({'error': str(e)}), 500
 
 
-# Get all blog posts with optional pagination
+# Route to fetch all blog posts with pagination and authentication
 @blog_bp.route('/blog_posts', methods=['GET'])
 # @jwt_required()
-def get_all_blog_posts():
+def get_blog_posts():
+    from api.app import app
     try:
         # Pagination parameters
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
+        page = request.args.get('page', default=1, type=int)
+        per_page = request.args.get('per_page', default=10, type=int)
 
+        # Validate pagination parameters
         if page < 1 or per_page < 1:
             return jsonify({'error': 'Invalid pagination parameters'}), 400
 
-        # Fetch blog posts with pagination
-        posts = BlogPost.query.paginate(page=page, per_page=per_page, error_out=False)
-        result = []
-        for post in posts.items:
-            post_data = {
-                'id': str(post.id),
-                'title': post.title,
-                'content': post.content,
-                'created_at': post.created_at,
-                'updated_at': post.updated_at,
-                'author_id': str(post.author_id)
-            }
-            result.append(post_data)
+        # Fetch paginated blog posts
+        paginated_posts = BlogPost.query.paginate(page=page, per_page=per_page, error_out=False)
+        posts_schema = BlogPostSchema(many=True)
+        result = posts_schema.dump(paginated_posts.items)
 
+        # Add pagination metadata to response
         response = {
             'posts': result,
-            'total': posts.total,
-            'pages': posts.pages,
-            'current_page': posts.page,
-            'next_page': posts.next_num if posts.has_next else None,
-            'prev_page': posts.prev_num if posts.has_prev else None
+            'total': paginated_posts.total,
+            'pages': paginated_posts.pages,
+            'current_page': paginated_posts.page,
+            'next_page': paginated_posts.next_num if paginated_posts.has_next else None,
+            'prev_page': paginated_posts.prev_num if paginated_posts.has_prev else None
         }
+
         return jsonify(response), 200
+
+    except SQLAlchemyError as e:
+        app.logger.error(f"Database error: {e}")
+        return jsonify({'error': 'Database error occurred'}), 500
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Internal server error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 
 
 # Get a blog post
