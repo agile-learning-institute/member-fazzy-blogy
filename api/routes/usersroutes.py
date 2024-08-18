@@ -4,7 +4,8 @@ from flask import Flask, request, jsonify, Blueprint
 from api.models.blogmodels import User
 from werkzeug.security import generate_password_hash
 from flask_jwt_extended import jwt_required, create_access_token
-from api.schemas.userschema import UserSchema, user_schema, users_schema
+from api.schemas.userschema import UserSchema
+
 
 user_bp = Blueprint('users', __name__, url_prefix='/api/v1')
 
@@ -63,9 +64,11 @@ def create_user():
     }), 201
 
 
+
 # Route to get users with pagination and authentication
+user_schema = UserSchema(many=True)
 @user_bp.route('/users', methods=['GET'])
-@jwt_required()
+# @jwt_required()
 def get_users():
     try:
         # Pagination parameters
@@ -77,7 +80,7 @@ def get_users():
 
         # Fetch users with pagination
         users = User.query.paginate(page=page, per_page=per_page, error_out=False)
-        result = users_schema.dump(users.items)
+        result = user_schema.dump(users.items)  # Use schema to dump data
 
         # Add pagination metadata
         response = {
