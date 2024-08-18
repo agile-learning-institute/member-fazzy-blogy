@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 from api.models.blogmodels import db
 from api.config import Config, TestConfig
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+from flask_jwt_extended import JWTManager
 
 
 # Load environment variables from .env file
