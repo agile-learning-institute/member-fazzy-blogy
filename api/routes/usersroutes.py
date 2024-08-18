@@ -69,7 +69,7 @@ def create_user():
 # Route to get users with pagination and authentication
 user_schema = UserSchema(many=True)
 @user_bp.route('/users', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def get_users():
     try:
         # Pagination parameters
