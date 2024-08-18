@@ -2,6 +2,7 @@
 import json
 import pytest
 from uuid import uuid4
+from sqlalchemy.exc import SQLAlchemyError
 from api.models.blogmodels import User, db
 from flask_jwt_extended import create_access_token
 
@@ -188,3 +189,35 @@ def test_update_user(client, token):
     assert response_json['email'] == "updateduser@example.com"
     assert response_json['is_active'] is False
     assert response_json['role'] == "user"
+
+
+def test_get_user(test_client, init_database):
+    """Test fetching a user by user_id."""
+    response = test_client.get('/users/44040d26-2fc9-4e5f-b577-97ba9e771392')
+    assert response.status_code == 200
+
+    user_data = response.get_json()
+    assert user_data['id'] == "44040d26-2fc9-4e5f-b577-97ba9e771392"
+    assert user_data['username'] == "testuser"
+    assert user_data['email'] == "testuser@example.com"
+    assert user_data['firstname'] == "Test"
+    assert user_data['lastname'] == "User"
+    assert user_data['role'] == "admin"
+    assert user_data['created_at'] is not None
+
+
+def test_get_user_not_found(test_client, init_database):
+    """Test fetching a non-existent user."""
+    response = test_client.get('/users/invalid-user-id')
+    assert response.status_code == 404
+
+
+def test_database_error(test_client, init_database, mocker):
+    """Test handling a database error."""
+    mocker.patch('app.models.User.query.get_or_404', side_effect=SQLAlchemyError())
+
+    response = test_client.get('/users/44040d26-2fc9-4e5f-b577-97ba9e771392')
+    assert response.status_code == 500
+    error_data = response.get_json()
+    assert 'error' in error_data
+    assert error_data['error'] == 'Database error occurred'

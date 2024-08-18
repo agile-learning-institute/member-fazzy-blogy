@@ -1,7 +1,8 @@
 import uuid
 from uuid import UUID
-from flask import Flask, request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint
 from api.models.blogmodels import User
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import generate_password_hash
 from flask_jwt_extended import jwt_required, create_access_token
 from api.schemas.userschema import UserSchema
@@ -94,6 +95,31 @@ def get_users():
         return jsonify(response), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# get a user
+@user_bp.route('/users/<string:user_id>', methods=['GET'])
+def get_user(user_id):
+    try:
+        user = User.query.get_or_404(user_id)
+
+        user_data = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'firstname': user.firstname,
+            'lastname': user.lastname,
+            'role': user.role,
+            'created_at': user.created_at
+        }
+
+        return jsonify(user_data), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({'error': 'Database error occurred'}), 500
+
+    except Exception as e:
+        return jsonify({'error': 'Internal server error'}), 500
+
 
 # update user
 @user_bp.route('/users/<string:user_id>', methods=['PUT'])
