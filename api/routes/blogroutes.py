@@ -139,7 +139,7 @@ def update_blog_post(post_id):
 
 # Delete a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['DELETE'])
-# @jwt_required()
+@jwt_required()
 def delete_blog_post(post_id):
     from api.app import app
     try:
