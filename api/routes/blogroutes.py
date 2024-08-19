@@ -41,24 +41,20 @@ def create_blog_post():
 
 # Route to fetch all blog posts with pagination and authentication
 @blog_bp.route('/blog_posts', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def get_blog_posts():
     from api.app import app
     try:
-        # Pagination parameters
         page = request.args.get('page', default=1, type=int)
         per_page = request.args.get('per_page', default=10, type=int)
 
-        # Validate pagination parameters
         if page < 1 or per_page < 1:
             return jsonify({'error': 'Invalid pagination parameters'}), 400
 
-        # Fetch paginated blog posts
         paginated_posts = BlogPost.query.paginate(page=page, per_page=per_page, error_out=False)
         posts_schema = BlogPostSchema(many=True)
         result = posts_schema.dump(paginated_posts.items)
 
-        # Add pagination metadata to response
         response = {
             'posts': result,
             'total': paginated_posts.total,
