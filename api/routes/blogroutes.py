@@ -103,7 +103,7 @@ def get_blog_post(post_id):
 
 # Update a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['PUT'])
-# @jwt_required()
+@jwt_required()
 def update_blog_post(post_id):
     data = request.get_json()
     title = data.get('title')
