@@ -10,6 +10,8 @@ from sqlalchemy.exc import SQLAlchemyError
 comments_bp = Blueprint('comments', __name__, url_prefix='/api/v1')
 
 # create comment
+
+
 @comments_bp.route('/comments', methods=['POST'])
 @jwt_required()
 def create_comment():
@@ -30,7 +32,8 @@ def create_comment():
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
-        new_comment = Comment(blog_post_id=blog_post_id, user_id=user_id, comment=comment_text)
+        new_comment = Comment(blog_post_id=blog_post_id,
+                              user_id=user_id, comment=comment_text)
         db.session.add(new_comment)
         db.session.commit()
         return jsonify({'message': 'Comment added successfully', 'comment': {
@@ -44,9 +47,44 @@ def create_comment():
         db.session.rollback()
         return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
 
-
-
 # get comments
+
+
+@comments_bp.route('/blog_posts/<string:post_id>/comments', methods=['GET'])
+# @jwt_required()
+def get_comments_for_blog_post(post_id):
+    try:
+        post = BlogPost.query.get_or_404(post_id)
+
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+
+        if page < 1 or per_page < 1:
+            return jsonify({'error': 'Page number and per_page must be positive integers'}), 400
+
+        pagination = Comment.query.filter_by(blog_post_id=post.id).paginate(page=page, per_page=per_page, error_out=False)
+
+        comments_data = [{
+            'id': str(comment.id),
+            'user_id': str(comment.user_id),
+            'comment': comment.comment,
+            'created_at': comment.created_at
+        } for comment in pagination.items]
+
+        result = {
+            'post_id': str(post.id),
+            'comments': comments_data,
+            'page': page,
+            'per_page': per_page,
+            'total_comments': pagination.total,
+            'total_pages': pagination.pages
+        }
+
+        return jsonify(result), 200
+    except SQLAlchemyError as e:
+        return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
+
 # get a comment
+
 # update a comment
 # delete a comment
