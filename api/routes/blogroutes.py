@@ -103,7 +103,7 @@ def get_blog_post(post_id):
 
 # Update a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['PUT'])
-# @jwt_required()
+@jwt_required()
 def update_blog_post(post_id):
     from api.app import app
     data = request.get_json()
@@ -132,7 +132,7 @@ def update_blog_post(post_id):
         }), 200
 
     except SQLAlchemyError as e:
-        db.session.rollback()  # Rollback in case of an error
+        db.session.rollback()
         app.logger.error(f"Database error occurred: {e}")
         return jsonify({'error': 'A database error occurred'}), 500
 
