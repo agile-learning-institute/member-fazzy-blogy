@@ -4,6 +4,8 @@ from api.models.blogmodels import db, BlogPost, User, Comment
 from api.schemas.blogschema import BlogPostSchema
 from sqlalchemy.exc import SQLAlchemyError
 
+blog_post_schema = BlogPostSchema()
+
 
 blog_bp = Blueprint('blog', __name__, url_prefix='/api/v1')
 
@@ -80,21 +82,24 @@ def get_blog_posts():
 
 # Get a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['GET'])
-@jwt_required()
+# @jwt_required()
 def get_blog_post(post_id):
+    from api.app import app
     try:
         post = BlogPost.query.get_or_404(post_id)
-        post_data = {
-            'id': str(post.id),
-            'title': post.title,
-            'content': post.content,
-            'author_id': str(post.author_id),
-            'created_at': post.created_at,
-            'updated_at': post.updated_at
-        }
+
+        post_data = blog_post_schema.dump(post)
+
         return jsonify(post_data), 200
+
+    except SQLAlchemyError as e:
+        app.loggger.error(f"Database error: {e}")
+        return jsonify({'error': 'Database error occurred'}), 500
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.loggger.error(f"Internal server error: {e}")
+        return jsonify({'error': 'Internal server error occurred'}), 500
+
 
 # Update a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['PUT'])
