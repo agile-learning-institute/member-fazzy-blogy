@@ -82,7 +82,7 @@ def get_blog_posts():
 
 # Get a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def get_blog_post(post_id):
     from api.app import app
     try:
@@ -103,9 +103,13 @@ def get_blog_post(post_id):
 
 # Update a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['PUT'])
-@jwt_required()
+# @jwt_required()
 def update_blog_post(post_id):
+    from api.app import app
     data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
     title = data.get('title')
     content = data.get('content')
 
@@ -114,18 +118,28 @@ def update_blog_post(post_id):
 
     try:
         post = BlogPost.query.get_or_404(post_id)
+
         if title:
             post.title = title
         if content:
             post.content = content
+
         db.session.commit()
-        return jsonify({'message': 'Blog post updated successfully', 'post': {
-            'id': str(post.id),
-            'title': post.title,
-            'content': post.content
-        }}), 200
+
+        return jsonify({
+            'message': 'Blog post updated successfully',
+            'post': BlogPostSchema().dump(post)
+        }), 200
+
+    except SQLAlchemyError as e:
+        db.session.rollback()  # Rollback in case of an error
+        app.logger.error(f"Database error occurred: {e}")
+        return jsonify({'error': 'A database error occurred'}), 500
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Unexpected error occurred: {e}")
+        return jsonify({'error': 'An unexpected error occurred'}), 500
+
 
 # Delete a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['DELETE'])
