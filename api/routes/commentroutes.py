@@ -113,17 +113,27 @@ def get_comment(comment_id):
 
 # update a comment
 @comments_bp.route('/comments/<string:comment_id>', methods=['PUT'])
+@jwt_required()
 def update_comment(comment_id):
+    from api.app import app
     data = request.get_json()
     comment_text = data.get('comment')
 
     if not comment_text:
         return jsonify({'error': 'Missing comment text'}), 400
 
+    current_user = get_jwt_identity()
+
     try:
         comment = Comment.query.get_or_404(comment_id)
+
+
+        if comment.user_id != current_user['id']:
+            return jsonify({'error': 'Unauthorized access'}), 403
+
         comment.comment = comment_text
         db.session.commit()
+
         return jsonify({'message': 'Comment updated successfully', 'comment': {
             'id': str(comment.id),
             'blog_post_id': str(comment.blog_post_id),
@@ -131,9 +141,15 @@ def update_comment(comment_id):
             'comment': comment.comment,
             'created_at': comment.created_at
         }}), 200
+
     except SQLAlchemyError as e:
         db.session.rollback()
+        app.logger.error(f"Database error occurred: {str(e)}")
         return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
+
+    except Exception as e:
+        app.logger.error(f"Unexpected error: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
 
 
 # delete a comment
