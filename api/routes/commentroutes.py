@@ -112,4 +112,28 @@ def get_comment(comment_id):
         return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
 
 # update a comment
+@comments_bp.route('/comments/<string:comment_id>', methods=['PUT'])
+def update_comment(comment_id):
+    data = request.get_json()
+    comment_text = data.get('comment')
+
+    if not comment_text:
+        return jsonify({'error': 'Missing comment text'}), 400
+
+    try:
+        comment = Comment.query.get_or_404(comment_id)
+        comment.comment = comment_text
+        db.session.commit()
+        return jsonify({'message': 'Comment updated successfully', 'comment': {
+            'id': str(comment.id),
+            'blog_post_id': str(comment.blog_post_id),
+            'user_id': str(comment.user_id),
+            'comment': comment.comment,
+            'created_at': comment.created_at
+        }}), 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
+
+
 # delete a comment
