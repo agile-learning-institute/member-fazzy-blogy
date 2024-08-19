@@ -51,7 +51,7 @@ def create_comment():
 
 
 @comments_bp.route('/blog_posts/<string:post_id>/comments', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def get_comments_for_blog_post(post_id):
     try:
         post = BlogPost.query.get_or_404(post_id)
@@ -85,6 +85,31 @@ def get_comments_for_blog_post(post_id):
         return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
 
 # get a comment
+@comments_bp.route('/comments/<string:comment_id>', methods=['GET'])
+# @jwt_required()
+def get_comment(comment_id):
+    from api.app import app
+    if not comment_id:
+        return jsonify({'error': 'Invalid comment ID format'}), 400
+
+    try:
+        comment = Comment.query.get_or_404(comment_id)
+
+        comment_data = {
+            'id': str(comment.id),
+            'blog_post_id': str(comment.blog_post_id),
+            'user_id': str(comment.user_id),
+            'comment': comment.comment,
+            'created_at': comment.created_at
+        }
+
+        return jsonify(comment_data), 200
+    except SQLAlchemyError as e:
+        app.logger.error(f"Database error occurred: {str(e)}")
+        return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
+    except Exception as e:
+        app.logger.error(f"Unexpected error: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
 
 # update a comment
 # delete a comment
