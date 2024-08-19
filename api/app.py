@@ -29,9 +29,11 @@ jwt = JWTManager(app)
 # Import and register blueprints
 from api.routes.blogroutes import blog_bp
 from api.routes.usersroutes import user_bp
+from api.routes.commentroutes import comments_bp
 
 app.register_blueprint(blog_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(comments_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)

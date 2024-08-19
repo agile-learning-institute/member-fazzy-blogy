@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, abort
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from api.models.blogmodels import db, BlogPost, User, Comment
 from api.schemas.blogschema import BlogPostSchema
@@ -41,7 +41,7 @@ def create_blog_post():
 
 # Route to fetch all blog posts with pagination and authentication
 @blog_bp.route('/blog_posts', methods=['GET'])
-@jwt_required()
+# @jwt_required()
 def get_blog_posts():
     from api.app import app
     try:
@@ -73,7 +73,6 @@ def get_blog_posts():
     except Exception as e:
         app.logger.error(f"Internal server error: {e}")
         return jsonify({'error': 'Internal server error'}), 500
-
 
 
 # Get a blog post
@@ -130,7 +129,6 @@ def update_blog_post(post_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-
 
 
 # Delete a blog post
