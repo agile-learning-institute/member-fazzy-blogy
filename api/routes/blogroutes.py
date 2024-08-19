@@ -103,13 +103,9 @@ def get_blog_post(post_id):
 
 # Update a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['PUT'])
-@jwt_required()
+# @jwt_required()
 def update_blog_post(post_id):
-    from api.app import app
     data = request.get_json()
-    if not data:
-        return jsonify({'error': 'No data provided'}), 400
-
     title = data.get('title')
     content = data.get('content')
 
@@ -117,38 +113,49 @@ def update_blog_post(post_id):
         return jsonify({'error': 'Missing fields to update'}), 400
 
     try:
-        post = BlogPost.query.get_or_404(post_id)
+        with db.session.begin_nested():
+            post = BlogPost.query.get_or_404(post_id)
+            if title:
+                post.title = title
+            if content:
+                post.content = content
 
-        if title:
-            post.title = title
-        if content:
-            post.content = content
-
-        db.session.commit()
+            db.session.commit()
 
         return jsonify({
             'message': 'Blog post updated successfully',
-            'post': BlogPostSchema().dump(post)
+            'post': {
+                'id': str(post.id),
+                'title': post.title,
+                'content': post.content
+            }
         }), 200
 
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        app.logger.error(f"Database error occurred: {e}")
-        return jsonify({'error': 'A database error occurred'}), 500
-
     except Exception as e:
-        app.logger.error(f"Unexpected error occurred: {e}")
-        return jsonify({'error': 'An unexpected error occurred'}), 500
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 
 
 # Delete a blog post
 @blog_bp.route('/blog_posts/<string:post_id>', methods=['DELETE'])
 @jwt_required()
 def delete_blog_post(post_id):
+    from api.app import app
     try:
-        post = BlogPost.query.get_or_404(post_id)
-        db.session.delete(post)
-        db.session.commit()
+        with db.session.begin_nested():
+            post = BlogPost.query.get_or_404(post_id)
+            db.session.delete(post)
+            db.session.commit()
+
         return jsonify({'message': 'Blog post deleted successfully'}), 200
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        app.logger.error(f"Database error occurred while deleting blog post: {e}")
+        return jsonify({'error': 'A database error occurred'}), 500
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
