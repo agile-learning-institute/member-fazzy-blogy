@@ -86,7 +86,7 @@ def get_comments_for_blog_post(post_id):
 
 # get a comment
 @comments_bp.route('/comments/<string:comment_id>', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def get_comment(comment_id):
     from api.app import app
     if not comment_id:
