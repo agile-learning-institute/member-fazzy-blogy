@@ -5,6 +5,7 @@ from marshmallow import ValidationError
 from api.schemas.commentshema import comment_schema
 from api.models.blogmodels import BlogPost, User, Comment, db
 from sqlalchemy.exc import SQLAlchemyError
+from api.utils.utils import is_admin
 
 
 comments_bp = Blueprint('comments', __name__, url_prefix='/api/v1')
@@ -153,3 +154,26 @@ def update_comment(comment_id):
 
 
 # delete a comment
+@comments_bp.route('/comments/<string:comment_id>', methods=['DELETE'])
+@jwt_required()
+def delete_comment(comment_id):
+    current_user_id = get_jwt_identity()
+
+    try:
+        comment = Comment.query.get_or_404(comment_id)
+        post = BlogPost.query.get_or_404(comment.blog_post_id)
+
+        if comment.user_id != current_user_id and post.author_id != current_user_id and not is_admin(current_user_id):
+            return jsonify({'error': 'You are not authorized to delete this comment'}), 403
+
+        db.session.delete(comment)
+        db.session.commit()
+
+        return jsonify({'message': 'Comment deleted successfully'}), 200
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
+
+    except Exception as e:
+        return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
