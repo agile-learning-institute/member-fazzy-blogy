@@ -41,7 +41,7 @@ def create_blog_post():
 
 # Route to fetch all blog posts with pagination and authentication
 @blog_bp.route('/blog_posts', methods=['GET'])
-# @jwt_required()
+@jwt_required()
 def get_blog_posts():
     from api.app import app
     try:
@@ -132,7 +132,7 @@ def update_blog_post(post_id):
 
 
 # Delete a blog post
-@blog_bp.route('/blog_posts/<string:post_id>', methods=['DELETE'])
+@blog_bp.route('/blog_posts/<int:post_id>', methods=['DELETE'])
 @jwt_required()
 def delete_blog_post(post_id):
     from api.app import app
