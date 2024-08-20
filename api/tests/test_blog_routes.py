@@ -1,4 +1,3 @@
-# conftest.py
 import pytest
 from api.app import app
 from api.models.blogmodels import db, User
