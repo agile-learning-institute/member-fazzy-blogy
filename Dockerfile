@@ -5,13 +5,13 @@ FROM python:3.12-slim as backend
 RUN apt-get update && apt-get install -y git
 
 # Set the working directory in the container
-WORKDIR /blogy
+WORKDIR /app
 
 # Copy only the necessary files to the container
 COPY requirements.txt .
 COPY alembic.ini .
-COPY api/ /blogy/api
-COPY alembic/ /blogy/alembic
+COPY api/ /app/api
+COPY alembic/ /app/alembic
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -23,7 +23,7 @@ RUN alembic upgrade head
 FROM node:20-alpine as frontend
 
 # Set the working directory in the container
-WORKDIR /blogy/frontend
+WORKDIR /app/frontend
 
 # Copy the frontend files to the container
 COPY frontend/package.json frontend/package-lock.json ./
@@ -36,13 +36,13 @@ RUN npm install && npm run build
 FROM python:3.12-slim
 
 # Set the working directory in the container
-WORKDIR /opt/blogy
+WORKDIR /opt/blog-app
 
 # Copy the backend from the backend stage
-COPY --from=backend /app /opt/blogy
+COPY --from=backend /app /opt/blog-app
 
 # Copy the frontend build to the backend's static files directory
-COPY --from=frontend /app/frontend/dist /opt/blogy/api/static
+COPY --from=frontend /app/frontend/dist /opt/blog-app/api/static
 
 # Install Gunicorn and other necessary packages
 RUN pip install gunicorn gevent
@@ -51,7 +51,7 @@ RUN pip install gunicorn gevent
 EXPOSE 8080
 
 # Set environment variables
-ENV PYTHONPATH=/opt/blogy
+ENV PYTHONPATH=/opt/blog-app
 
 # Command to run the backend using Gunicorn
 CMD ["gunicorn", "--worker-class", "gevent", "--workers", "3", "--bind", "0.0.0.0:8080", "api.app:app"]
