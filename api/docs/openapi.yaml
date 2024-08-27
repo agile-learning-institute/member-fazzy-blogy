@@ -5,7 +5,7 @@ info:
   description: API documentation for the Blog application.
 
 paths:
-  /api/v1/users:
+  /api/v1/users
     post:
       summary: Create a new user
       tags:
