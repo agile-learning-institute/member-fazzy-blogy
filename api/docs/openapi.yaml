@@ -1,0 +1,1291 @@
+openapi: 3.0.1
+info:
+  title: Blog API
+  version: 1.0.0
+  description: API documentation for the Blog application.
+
+paths:
+  /api/v1/users:
+    post:
+      summary: Create a new user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+                - firstname
+                - lastname
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@example.com
+                password:
+                  type: string
+                  format: password
+                  example: yourpassword
+                firstname:
+                  type: string
+                  example: John
+                lastname:
+                  type: string
+                  example: Doe
+                role:
+                  type: string
+                  example: user
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User created successfully
+                  id:
+                    type: string
+                    format: uuid
+                    example: d290f1ee-6c54-4b01-90e6-d701748f0851
+                  username:
+                    type: string
+                    example: johndoe
+                  email:
+                    type: string
+                    format: email
+                    example: johndoe@example.com
+                  firstname:
+                    type: string
+                    example: John
+                  lastname:
+                    type: string
+                    example: Doe
+                  role:
+                    type: string
+                    example: user
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: 2024-08-22T19:29:23Z
+        '400':
+          description: Bad request, missing required fields or invalid data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Missing required fields
+        '409':
+          description: Conflict, user with the same username or email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User with that username or email already exists
+    get:
+      summary: Get a paginated list of users
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination (must be greater than 0)
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 10
+          description: Number of users per page (must be greater than 0)
+      responses:
+        '200':
+          description: A paginated list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+                        username:
+                          type: string
+                          example: johndoe
+                        email:
+                          type: string
+                          format: email
+                          example: johndoe@example.com
+                        firstname:
+                          type: string
+                          example: John
+                        lastname:
+                          type: string
+                          example: Doe
+                        role:
+                          type: string
+                          example: user
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: 2024-08-22T19:29:23Z
+                  total:
+                    type: integer
+                    example: 100
+                  pages:
+                    type: integer
+                    example: 10
+                  current_page:
+                    type: integer
+                    example: 1
+                  next_page:
+                    type: integer
+                    nullable: true
+                    example: 2
+                  prev_page:
+                    type: integer
+                    nullable: true
+                    example: null
+        '400':
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid pagination parameters
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: An unexpected error occurred
+
+  /api/v1/users/{user_id}:
+    get:
+      summary: Get a specific user by ID
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user to retrieve
+      responses:
+        '200':
+          description: The user data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: d290f1ee-6c54-4b01-90e6-d701748f0851
+                  username:
+                    type: string
+                    example: johndoe
+                  email:
+                    type: string
+                    format: email
+                    example: johndoe@example.com
+                  firstname:
+                    type: string
+                    example: John
+                  lastname:
+                    type: string
+                    example: Doe
+                  role:
+                    type: string
+                    example: user
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: 2024-08-22T19:29:23Z
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+    put:
+      summary: Update a specific user by ID
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: johndoe_updated
+                email:
+                  type: string
+                  format: email
+                  example: johndoe_updated@example.com
+                is_active:
+                  type: boolean
+                  example: true
+                role:
+                  type: string
+                  example: admin
+      responses:
+        '200':
+          description: The updated user data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: d290f1ee-6c54-4b01-90e6-d701748f0851
+                  username:
+                    type: string
+                    example: johndoe_updated
+                  email:
+                    type: string
+                    format: email
+                    example: johndoe_updated@example.com
+                  is_active:
+                    type: boolean
+                    example: true
+                  role:
+                    type: string
+                    example: admin
+        '400':
+          description: Bad request, e.g., invalid user ID or missing input data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Invalid user ID format
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: User not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Internal server error
+
+    delete:
+      summary: Delete a specific user by ID
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user to delete
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User deleted successfully
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
+        '500':
+          description: Internal server error, e.g., database issues
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Database error occurred
+
+  /api/v1/login:
+    post:
+      summary: Create an access token for authentication
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                identifier:
+                  type: string
+                  example: "user@example.com"
+                  description: Username or email of the user
+                password:
+                  type: string
+                  example: "securepassword"
+                  description: Password of the user
+              required:
+                - identifier
+                - password
+      responses:
+        '200':
+          description: Login successful and access token generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMDAxIiwiaWF0IjoxNTg1NjU5MTIyfQ.8d65GbK8ZdygLop7rYy5Vwb5rfmM7O_4E_s1j0ZZmMI"
+                    description: JWT access token
+                  message:
+                    type: string
+                    example: "Login successful"
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Missing required fields"
+        '401':
+          description: Invalid username/email or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid username/email or password"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error occurred"
+  /api/v1/blog_posts:
+    post:
+      summary: Create a new blog post
+      tags:
+        - Blog Posts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "My First Blog Post"
+                  description: Title of the blog post
+                content:
+                  type: string
+                  example: "This is the content of the blog post..."
+                  description: Content of the blog post
+                author_id:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+                  description: ID of the author creating the blog post
+              required:
+                - title
+                - content
+                - author_id
+      responses:
+        '201':
+          description: Blog post created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Blog post created successfully"
+                  post:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174001"
+                        description: ID of the created blog post
+                      title:
+                        type: string
+                        example: "My First Blog Post"
+                      content:
+                        type: string
+                        example: "This is the content of the blog post..."
+                      author_id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing required fields"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error occurred"
+    get:
+      summary: Get all blog posts with pagination
+      tags:
+        - Blog Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+            example: 1
+        - name: per_page
+          in: query
+          description: Number of posts per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            example: 10
+      responses:
+        '200':
+          description: A paginated list of blog posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          example: "123e4567-e89b-12d3-a456-426614174001"
+                        title:
+                          type: string
+                          example: "My First Blog Post"
+                        content:
+                          type: string
+                          example: "This is the content of the blog post..."
+                        author_id:
+                          type: string
+                          format: uuid
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                  total:
+                    type: integer
+                    description: Total number of blog posts
+                    example: 50
+                  pages:
+                    type: integer
+                    description: Total number of pages
+                    example: 5
+                  current_page:
+                    type: integer
+                    description: Current page number
+                    example: 1
+                  next_page:
+                    type: integer
+                    description: Next page number
+                    nullable: true
+                    example: 2
+                  prev_page:
+                    type: integer
+                    description: Previous page number
+                    nullable: true
+                    example: null
+        '400':
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid pagination parameters"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error occurred"
+  /api/v1/blog_posts/{post_id}:
+    get:
+      summary: Get a blog post by ID
+      tags:
+        - Blog Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          description: The unique identifier of the blog post
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: A blog post object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  title:
+                    type: string
+                    example: "My First Blog Post"
+                  content:
+                    type: string
+                    example: "This is the content of the blog post..."
+                  author_id:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174001"
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: "2024-08-25T14:30:00Z"
+                  updated_at:
+                    type: string
+                    format: date-time
+                    example: "2024-08-25T14:30:00Z"
+        '404':
+          description: Blog post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Blog post not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error occurred"
+    put:
+      summary: Update a blog post by ID
+      tags:
+        - Blog Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          description: The unique identifier of the blog post
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        description: Blog post data to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Updated Blog Post Title"
+                content:
+                  type: string
+                  example: "This is the updated content of the blog post..."
+              required:
+                - title
+                - content
+      responses:
+        '200':
+          description: Blog post updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Blog post updated successfully"
+                  post:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      title:
+                        type: string
+                        example: "Updated Blog Post Title"
+                      content:
+                        type: string
+                        example: "This is the updated content of the blog post..."
+        '400':
+          description: Missing fields to update
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing fields to update"
+        '404':
+          description: Blog post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Blog post not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error occurred"
+    delete:
+      summary: Delete a blog post by ID
+      tags:
+        - Blog Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          description: The unique identifier of the blog post
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Blog post deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Blog post deleted successfully"
+        '404':
+          description: Blog post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Blog post not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error occurred"
+
+  /api/v1/comments:
+    post:
+      summary: Create a new comment
+      tags:
+        - Comments
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - blog_post_id
+                - user_id
+                - comment
+              properties:
+                blog_post_id:
+                  type: string
+                  format: uuid
+                  description: The ID of the blog post to which the comment is related
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+                user_id:
+                  type: string
+                  format: uuid
+                  description: The ID of the user making the comment
+                  example: "123e4567-e89b-12d3-a456-426614174001"
+                comment:
+                  type: string
+                  description: The content of the comment
+                  example: "This is a comment."
+      responses:
+        '201':
+          description: Comment added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment added successfully"
+                  comment:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174002"
+                      blog_post_id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      user_id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174001"
+                      comment:
+                        type: string
+                        example: "This is a comment."
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: "2024-08-25T14:15:22Z"
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing required fields"
+        '404':
+          description: Blog post or user not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Blog post not found"
+        '500':
+          description: Database or internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Database error occurred"
+                  details:
+                    type: string
+                    example: "Detailed error message"
+
+  /api/v1/blog_posts/{post_id}/comments:
+    get:
+      summary: Get comments for a blog post
+      tags:
+        - Comments
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the blog post
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: The page number to retrieve
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 10
+          description: The number of comments per page
+      responses:
+        '200':
+          description: A list of comments for the blog post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post_id:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  comments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          example: "123e4567-e89b-12d3-a456-426614174002"
+                        user_id:
+                          type: string
+                          format: uuid
+                          example: "123e4567-e89b-12d3-a456-426614174001"
+                        comment:
+                          type: string
+                          example: "This is a comment."
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: "2024-08-25T14:15:22Z"
+                  page:
+                    type: integer
+                    example: 1
+                  per_page:
+                    type: integer
+                    example: 10
+                  total_comments:
+                    type: integer
+                    example: 100
+                  total_pages:
+                    type: integer
+                    example: 10
+        '400':
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Page number and per_page must be positive integers"
+        '404':
+          description: Blog post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Blog post not found"
+        '500':
+          description: Database or internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Database error occurred"
+                  details:
+                    type: string
+                    example: "Detailed error message"
+
+  /api/v1/comments/{comment_id}:
+    get:
+      summary: Get a specific comment
+      tags:
+        - Comments
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: comment_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the comment to retrieve
+      responses:
+        '200':
+          description: The requested comment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174003"
+                  blog_post_id:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  user_id:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174001"
+                  comment:
+                    type: string
+                    example: "This is a comment."
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: "2024-08-25T14:15:22Z"
+        '400':
+          description: Invalid comment ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid comment ID format"
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Comment not found"
+        '500':
+          description: Database or internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Database error occurred"
+                  details:
+                    type: string
+                    example: "Detailed error message"
+    put:
+      summary: Update a specific comment
+      tags:
+        - Comments
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: comment_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the comment to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  example: "Updated comment text"
+      responses:
+        '200':
+          description: The comment was updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment updated successfully"
+                  comment:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174003"
+                      blog_post_id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      user_id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174001"
+                      comment:
+                        type: string
+                        example: "Updated comment text"
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: "2024-08-25T14:15:22Z"
+        '400':
+          description: Missing comment text in the request body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing comment text"
+        '403':
+          description: Unauthorized access to update the comment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized access"
+        '404':
+          description: Comment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Comment not found"
+        '500':
+          description: Database or internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Database error occurred"
+                  details:
+                    type: string
+                    example: "Detailed error message"
+    delete:
+      summary: Delete a specific comment
+      tags:
+        - Comments
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: comment_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the comment to delete
+      responses:
+        '200':
+          description: The comment was deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Comment deleted successfully"
+        '403':
+          description: Unauthorized access to delete the comment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "You are not authorized to delete this comment"
+        '404':
+          description: Comment or associated blog post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Comment not found"
+        '500':
+          description: Database or internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Database error occurred"
+                  details:
+                    type: string
+                    example: "Detailed error message"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

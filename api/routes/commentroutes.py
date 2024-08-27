@@ -11,8 +11,6 @@ from api.utils.utils import is_admin
 comments_bp = Blueprint('comments', __name__, url_prefix='/api/v1')
 
 # create comment
-
-
 @comments_bp.route('/comments', methods=['POST'])
 @jwt_required()
 def create_comment():
@@ -49,8 +47,6 @@ def create_comment():
         return jsonify({'error': 'Database error occurred', 'details': str(e)}), 500
 
 # get comments
-
-
 @comments_bp.route('/blog_posts/<string:post_id>/comments', methods=['GET'])
 @jwt_required()
 def get_comments_for_blog_post(post_id):
